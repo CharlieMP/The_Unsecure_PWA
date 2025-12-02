@@ -4,6 +4,7 @@ from flask import request
 from flask import redirect
 from flask_cors import CORS
 import user_management as dbHandler
+import security as secure
 
 # Code snippet for logging a message
 # app.logger.critical("message")
@@ -17,6 +18,7 @@ CORS(app)
 def addFeedback():
     if request.method == "GET" and request.args.get("url"):
         url = request.args.get("url", "")
+        # use prepared statement here
         return redirect(url, code=302)
     if request.method == "POST":
         feedback = request.form["feedback"]
@@ -37,7 +39,9 @@ def signup():
         username = request.form["username"]
         password = request.form["password"]
         DoB = request.form["dob"]
-        dbHandler.insertUser(username, password, DoB)
+        salt = secure.getSalt()
+        hashed = secure.hashpassword(password, salt)
+        dbHandler.insertUser(username, hashed, DoB, salt)
         return render_template("/index.html")
     else:
         return render_template("/signup.html")
